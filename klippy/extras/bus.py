@@ -282,7 +282,7 @@ class MCU_I2C:
         return self.i2c_read_cmd.send([self.oid, write, read_len],
                                       retry=retry)
     def i2c_transfer(self, write, read_len=0, minclock=0, reqclock=0,
-                     retry=True):
+                     retry=True, shutdown_on_error=True):
         if self.async_write_only:
             raise mcu.error("I2C dev is write only")
         cmd = self.i2c_transfer_cmd
@@ -297,6 +297,8 @@ class MCU_I2C:
             return param
         err_msg = "MCU '%s' I2C request to addr %i reports error %s" % (
             self.mcu.get_name(), self.i2c_address, status)
+        if not shutdown_on_error:
+            raise mcu.error(err_msg)
         self.mcu.get_printer().invoke_shutdown(err_msg)
 
 def MCU_I2C_from_config(config, default_addr=None, default_speed=100000,
