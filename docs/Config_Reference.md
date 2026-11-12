@@ -3002,6 +3002,58 @@ sensor_pin:
 #   name in the above list.
 ```
 
+### [ina228]
+
+I2C power monitoring with the Texas Instruments INA228. One section is used
+per sensor. Klipper publishes voltage (V), shunt voltage (V), current (A),
+power (W), accumulated energy (J), accumulated charge (C), and die temperature
+(degrees Celsius) through the status object `ina228 <name>`. These values are
+available to Moonraker clients through the regular `printer.objects` API.
+An INA228 is for telemetry, **not a substitute for electrical protection**.
+
+```ini
+[ina228 power_24v]
+shunt_resistance: 0.002
+max_current: 60
+#   Required: the actual installed shunt resistance in ohms and the
+#   desired bidirectional full-scale current. Incorrect shunt values or
+#   maximum current settings make readings inaccurate.
+#i2c_mcu: mcu
+#i2c_bus:
+#i2c_address: 64
+#   Use a unique I2C address per INA228 (0x40 = 64 by default).
+#i2c_speed: 100000
+#adc_range: 0
+#   0 selects the +/-163.84 mV shunt range; 1 selects +/-40.96 mV.
+#   Choose the range to cover peak shunt voltage (I_peak * R_shunt).
+#sample_interval: 1.0
+#   Seconds between complete measurement reads (minimum 0.1).
+#averaging: 16
+#   Supported averaging counts: 1, 4, 16, 64, 128, 256, 512, 1024.
+#conversion_time: 1052
+#   Conversion duration in microseconds for each of bus voltage,
+#   shunt voltage and die temperature: 50, 84, 150, 280, 540,
+#   1052, 2074, or 4120. Longer times and higher averaging
+#   improve noise suppression at the cost of update rate.
+```
+
+The device is configured for continuous shunt/bus/die-temperature
+conversions. Before enabling a sensor, verify the shunt's power rating,
+input common-mode limits, high-side wiring, and I2C voltage levels.
+Never route the load current through the MCU I2C ground or GPIO pins.
+The configured shunt range must be at least
+`max_current * shunt_resistance`; invalid combinations are rejected.
+The driver uses the factory ADC scales and the INA228 SHUNT_CAL formula.
+Accumulated energy and charge refer to the chip's counters and reset on
+chip power loss or a device-side accumulator reset.
+
+I2C read failures are counted in `sample_errors` and temporarily mark
+the object as `available: False`; a later good sample clears that flag.
+The previous values remain visible with a `sample_age` so clients can
+identify stale measurements. An invalid device identity is rejected during
+Klipper connect. Recent MCU firmware with `i2c_transfer` is required for
+nonfatal read-error reporting.
+
 ### BMP180/BMP280/BME280/BMP388/BME680 temperature sensor
 
 BMP180/BMP280/BME280/BMP388/BME680 two wire interface (I2C) environmental sensors.
