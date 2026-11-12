@@ -3002,6 +3002,56 @@ sensor_pin:
 #   name in the above list.
 ```
 
+### BME690 temperature sensor
+
+The Bosch BME690 is an I2C environmental sensor that measures temperature,
+pressure, relative humidity, and gas resistance. The gas reading is raw
+resistance (ohms), not an air quality index. The sensor requires recent
+Klipper MCU firmware implementing `i2c_transfer`.
+
+Activate BME690 support with an empty `[bme690]` section and configure the
+sensor using the following settings:
+
+```ini
+[bme690]
+
+[temperature_sensor chamber_bme690]
+sensor_type: BME690
+i2c_mcu: mcu
+#i2c_bus:
+#i2c_address: 119
+#   The BME690 I2C address (119 = 0x77 by default).
+#i2c_speed: 100000
+#bme690_oversample_temp: 2
+#bme690_oversample_pressure: 2
+#bme690_oversample_hum: 2
+#   Sensor oversampling settings (1 through 5).
+#bme690_iir_filter: 1
+#   IIR filter setting (0 through 7).
+#bme690_gas_enable: False
+#   Enable gas resistance readings.
+#bme690_gas_target_temp: 320
+#   Gas heater temperature (200 to 400 degrees Celsius).
+#bme690_gas_heat_duration: 150
+#   Gas heater time (1 to 4032 ms).
+#bme690_gas_interval: 3
+#   Minimum time between gas readings, in seconds.
+#bme690_max_sample_age: 5.
+#   Maximum seconds without a valid temperature reading. Temporary
+#   I2C errors are logged and retried on the next sensor sample; five
+#   consecutive errors or an expired sample age triggers shutdown.
+#min_temp: -20
+#max_temp: 85
+#   Temperature safety limits for this sensor.
+```
+
+Temperature readings outside configured safety limits trigger an immediate
+shutdown. The status object `bme690 chamber_bme690` exposes temperature,
+pressure (hPa), humidity (%RH), gas resistance (ohms), gas validity,
+sample failure counters, and the time since the last valid sample. Error
+tolerance is local to the BME690 driver and does not change the handling
+of I2C errors on other devices.
+
 ### BMP180/BMP280/BME280/BMP388/BME680 temperature sensor
 
 BMP180/BMP280/BME280/BMP388/BME680 two wire interface (I2C) environmental sensors.
