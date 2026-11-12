@@ -38,7 +38,7 @@ def parse_calibration(c):
     d = {
         't1': _u16(c, 31), 't2': _u16(c, 0),
         't3': _signed(c[2], 8),
-        'p1': _s16(c, 10), 'p2': _u16(c, 12),
+        'p1': _u16(c, 10), 'p2': _u16(c, 12),
         'p3': _signed(c[14], 8), 'p4': _signed(c[15], 8),
         'p5': _s16(c, 4), 'p6': _s16(c, 6),
         'p7': _signed(c[8], 8), 'p8': _signed(c[9], 8),

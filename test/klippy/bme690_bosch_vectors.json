@@ -1,0 +1,39 @@
+{
+  "reference": "Bosch Sensortec BME69x SensorAPI v1.1.0 (reference commit 8a4d9229)",
+  "vectors": [
+    {
+      "coefficients_hex": "9f20d76bf078e39a4b9e390dbb50f24a93772557415d7100c2ed977290cb28b24593f62f89fbc2529512",
+      "raw_temperature": 6811918,
+      "raw_pressure": 3989383,
+      "raw_humidity": 28522,
+      "raw_gas": 881,
+      "gas_range": 15,
+      "heater_target": 272,
+      "ambient_temperature": 46,
+      "expected": {
+        "temperature": 16.7217789,
+        "pressure_pa": 84167.4297,
+        "humidity": 8.8750782,
+        "gas_ohms": 1537.57446,
+        "heater_register": 132
+      }
+    },
+    {
+      "coefficients_hex": "0b1267b76e62a460151d0620a1632daf30f70919e12de3023d236593f9fdc366d8c16d063ee62da27ac9",
+      "raw_temperature": 11109369,
+      "raw_pressure": 2604794,
+      "raw_humidity": 38868,
+      "raw_gas": 850,
+      "gas_range": 0,
+      "heater_target": 204,
+      "ambient_temperature": 68,
+      "expected": {
+        "temperature": -9.76278687,
+        "pressure_pa": 83395.75,
+        "humidity": 1.76211452,
+        "gas_ohms": 51300196.0,
+        "heater_register": 109
+      }
+    }
+  ]
+}

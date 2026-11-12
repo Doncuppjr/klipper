@@ -4,6 +4,7 @@
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 import sys
+import json
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -97,6 +98,54 @@ def sample_sensor():
     sensor.measurements = []
     sensor._callback = lambda t, v: sensor.measurements.append((t, v))
     return sensor
+
+
+class TestBoschReference(unittest.TestCase):
+    def test_pressure_offset_coefficient_unsigned(self):
+        coefficients = bytearray(42)
+        coefficients[10] = 0xff
+        coefficients[11] = 0xff
+        d = bme690.parse_calibration(coefficients)
+        self.assertEqual(65535, d['p1'])
+
+    def test_heater_register_is_clamped_not_wrapped(self):
+        d = {'g1': 127, 'g2': 32767, 'g3': 127,
+             'res_heat_range': 0, 'res_heat_val': -128}
+        register = bme690.calc_res_heat(400, 25., d)
+        self.assertEqual(255, register)
+
+    def test_compensation_against_bosch_reference(self):
+        vectors_path = Path(__file__).with_name("bme690_bosch_vectors.json")
+        vectors = json.loads(vectors_path.read_text())["vectors"]
+        self.assertGreaterEqual(len(vectors), 2)
+        for vector in vectors:
+            with self.subTest(coefficients=vector["coefficients_hex"]):
+                coeff = bytes.fromhex(vector["coefficients_hex"])
+                d = bme690.parse_calibration(coeff)
+                self.assertEqual(42, len(coeff))
+                self.assertGreaterEqual(d['p1'], 0)
+                expected = vector["expected"]
+                temp = bme690.compensate_temperature(
+                    vector["raw_temperature"], d)
+                pressure = bme690.compensate_pressure(
+                    vector["raw_pressure"], temp, d)
+                humidity = bme690.compensate_humidity(
+                    vector["raw_humidity"], temp, d)
+                gas = bme690.compensate_gas(
+                    vector["raw_gas"], vector["gas_range"])
+                heater = bme690.calc_res_heat(
+                    vector["heater_target"],
+                    vector["ambient_temperature"], d)
+                self.assertAlmostEqual(expected["temperature"], temp,
+                                       delta=0.001)
+                self.assertAlmostEqual(expected["pressure_pa"], pressure,
+                                       delta=0.1)
+                self.assertAlmostEqual(expected["humidity"], humidity,
+                                       delta=0.001)
+                self.assertAlmostEqual(expected["gas_ohms"], gas,
+                                       delta=max(0.01,
+                                                 expected["gas_ohms"] * 1e-5))
+                self.assertEqual(expected["heater_register"], heater)
 
 
 class TestRecovery(unittest.TestCase):
